@@ -14,7 +14,7 @@
 
 ---
 
-Agentify transforms any OpenAPI specification into a complete suite of agent interfaces. Instead of manually building MCP servers, writing CLAUDE.md files, crafting agent skills, and configuring IDE rules separately, Agentify compiles them all from a single source of truth.
+Agentify compiles any OpenAPI specification into agent interfaces — MCP Server, CLAUDE.md, and AGENTS.md today, with more formats coming. Instead of hand-building each format separately, generate them all from a single source of truth.
 
 ```bash
 npx agentify-cli transform https://petstore.swagger.io/v2/swagger.json
@@ -71,6 +71,9 @@ npx agentify-cli transform ./my-api.yaml -o ./output
 
 # Override project name
 npx agentify-cli transform https://api.example.com/openapi.json -n my-project
+
+# Generate only specific formats
+npx agentify-cli transform ./my-api.yaml -f mcp claude.md
 ```
 
 **Output:**
@@ -96,8 +99,8 @@ npx agentify-cli transform https://api.example.com/openapi.json -n my-project
 | API Size | Endpoints | Strategy | Why |
 |----------|-----------|----------|-----|
 | Small | < 30 | Direct mapping | One tool per endpoint, simple and complete |
-| Medium | 30-100 | Tool Search + Lazy Loading | Reduces context window usage |
-| Large | 100+ | Code Execution + Docs Search | Avoids the "93 tools = 55K tokens" problem |
+| Medium | 30-100 | Direct mapping (Tool Search planned) | Detects scale; optimized generation coming soon |
+| Large | 100+ | Direct mapping (Code Exec planned) | Detects scale; context-optimized generation coming soon |
 
 **Security First** — Every generated artifact passes through:
 - Input sanitization (blocks eval, exec, Function constructor, require/import injection)
@@ -181,7 +184,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 ## Roadmap
 
 - [x] **M0: Foundation** — OpenAPI parser, MCP emitter, security scanner, CLI
-- [ ] **M1: Multi-Format** — Skills, CLAUDE.md, AGENTS.md, .cursorrules, llms.txt, A2A
+- [ ] **M1: Multi-Format** — ~~CLAUDE.md~~, ~~AGENTS.md~~, Skills, .cursorrules, llms.txt, A2A
 - [ ] **M2: Intelligence** — Capability graph, semantic grouping, context optimization
 - [ ] **M3: Self-Serve** — Web UI, one-click deploy, registry integrations
 - [ ] **M4: Scale** — Enterprise features, custom emitters, CI/CD integration
@@ -192,8 +195,8 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
 |---------|----------|-----------|-----------|-------------------|
 | MCP Server | Yes | Yes | No | No |
 | Skills | Planned | CLI only | No | Yes |
-| CLAUDE.md | Planned | No | No | No |
-| AGENTS.md | Planned | No | No | No |
+| CLAUDE.md | Yes | No | No | No |
+| AGENTS.md | Yes | No | No | No |
 | .cursorrules | Planned | No | No | No |
 | llms.txt | Planned | Yes | No | No |
 | A2A Card | Planned | No | No | No |

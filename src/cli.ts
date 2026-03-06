@@ -31,26 +31,11 @@ program
   .version(VERSION);
 
 program
-  .command("transform <input>")
+  .command("transform <input>", { isDefault: true })
   .description("Transform an OpenAPI spec into agent interfaces")
   .option("-o, --output <dir>", "Output directory")
   .option("-n, --name <name>", "Project name override")
   .action(async (input: string, opts: TransformOptions) => {
-    await runTransform(input, opts);
-  });
-
-// Shorthand: `agentify <url>` is the same as `agentify transform <url>`
-program
-  .argument("[input]", "OpenAPI spec URL or file path")
-  .option("-o, --output <dir>", "Output directory")
-  .option("-n, --name <name>", "Project name override")
-  .action(async (input: string | undefined, opts: TransformOptions) => {
-    if (!input) {
-      program.help();
-      return;
-    }
-    // Skip if this is a known subcommand
-    if (input === "transform") return;
     await runTransform(input, opts);
   });
 

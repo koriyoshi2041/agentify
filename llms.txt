@@ -2,33 +2,32 @@
 
 > Agent Interface Compiler — One command. Every agent speaks your product.
 
-Agentify transforms OpenAPI specifications into multiple agent interface formats with a single command. It is the only tool that generates MCP Servers, Skills, CLAUDE.md, AGENTS.md, .cursorrules, llms.txt, and A2A Cards from one source of truth.
+Agentify transforms OpenAPI specifications into agent interface formats with a single command. Currently generates MCP Servers with security scanning; additional formats are planned.
 
 ## Quick Start
 
 ```bash
-npx @agentify/cli transform https://petstore.swagger.io/v2/swagger.json
+npx agentify-cli transform https://petstore.swagger.io/v2/swagger.json
 ```
 
 ## Key Features
 
-- OpenAPI 3.0/3.1 parsing with input sanitization
+- OpenAPI 3.x / Swagger 2.0 parsing with input sanitization
 - MCP Server generation with security scanning
 - Tiered generation strategy: small (<30 endpoints), medium (30-100), large (100+)
 - Context-window aware: avoids the "93 tools = 55K tokens" problem
-- Multiple output formats from a single OpenAPI spec
 
 ## Output Formats
 
-- MCP Server: Model Context Protocol server with tools, handlers, and Dockerfile
-- Skills: Agent instruction files for Claude Code, Cursor, Copilot, and 30+ platforms
-- CLAUDE.md: Project context for Claude Code
-- AGENTS.md: Universal agent instructions (Agentic AI Foundation standard)
-- .cursorrules: Cursor IDE agent rules
-- llms.txt: LLM-readable documentation
-- A2A Card: Google Agent-to-Agent protocol discovery card
+- MCP Server: Model Context Protocol server with tools, handlers, and Dockerfile (Available)
+- CLAUDE.md: Project context for Claude Code (Planned)
+- AGENTS.md: Universal agent instructions (Planned)
+- .cursorrules: Cursor IDE agent rules (Planned)
+- Skills: Agent instruction files for 30+ platforms (Planned)
+- llms.txt: LLM-readable documentation (Planned)
+- A2A Card: Google Agent-to-Agent protocol discovery card (Planned)
 
 ## Links
 
 - GitHub: https://github.com/koriyoshi2041/agentify
-- npm: https://www.npmjs.com/package/@agentify/cli
+- npm: https://www.npmjs.com/package/agentify-cli

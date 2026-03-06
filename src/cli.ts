@@ -118,7 +118,7 @@ async function runTransform(input: string, opts: TransformOptions): Promise<void
   console.log(`  ${chalk.green("✓")} Security scan: ${chalk.green("PASSED")}`);
   console.log("");
   console.log(chalk.bold("  Next steps:"));
-  console.log(chalk.dim(`    cd ${projectName}`));
+  console.log(chalk.dim(`    cd ${outputDir}`));
   console.log(chalk.dim("    npm install"));
   console.log(chalk.dim("    cp .env.example .env  # add your API key"));
   console.log(chalk.dim("    npm start"));

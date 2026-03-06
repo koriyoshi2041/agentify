@@ -84,7 +84,7 @@ npx @agentify/cli transform https://api.example.com/openapi.json -n my-project
 
   +-- 20 endpoints detected -> SMALL API strategy
   +-- 3 domains identified (pet, store, user)
-  +-- Auth: apiKey (PETSTORE_API_KEY)
+  +-- Auth: apiKey (SWAGGER_PETSTORE_API_KEY)
   +-- Strategy: Direct tool mapping — one tool per endpoint
 
   > Generated MCP Server (8 files)

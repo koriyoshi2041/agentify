@@ -78,15 +78,31 @@ function extractProductMeta(api: OASDocument, warnings: string[]): ProductMeta {
 }
 
 function extractBaseUrl(api: OASDocument): string {
+  // OAS 3.x: use servers array
   if (api.servers && api.servers.length > 0) {
     const server = api.servers[0];
     return server?.url ?? "http://localhost:3000";
   }
+
+  // Swagger 2.0: construct from host + basePath + schemes
+  const swagger2 = api as Record<string, unknown>;
+  if (typeof swagger2["host"] === "string") {
+    const host = swagger2["host"] as string;
+    const basePath = (swagger2["basePath"] as string) ?? "";
+    const schemes = swagger2["schemes"] as string[] | undefined;
+    const scheme = schemes && schemes.length > 0 ? schemes[0] : "https";
+    return `${scheme}://${host}${basePath}`;
+  }
+
   return "http://localhost:3000";
 }
 
 function extractAuthConfig(api: OASDocument, warnings: string[]): AuthConfig {
-  const securitySchemes = (api.components as OpenAPIV3.ComponentsObject | undefined)?.securitySchemes;
+  // OAS 3.x: components.securitySchemes
+  // Swagger 2.0: securityDefinitions
+  const securitySchemes =
+    (api.components as OpenAPIV3.ComponentsObject | undefined)?.securitySchemes
+    ?? (api as Record<string, unknown>)["securityDefinitions"] as Record<string, unknown> | undefined;
 
   if (!securitySchemes) {
     return {

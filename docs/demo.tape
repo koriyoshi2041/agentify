@@ -15,7 +15,7 @@ Type "# Transform any OpenAPI spec into an MCP Server"
 Enter
 Sleep 600ms
 
-Type "npx agentify-cli@0.1.3 transform https://petstore.swagger.io/v2/swagger.json"
+Type "npx agentify-cli@0.2.0 transform https://petstore.swagger.io/v2/swagger.json"
 Sleep 300ms
 Enter
 Sleep 25s

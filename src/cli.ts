@@ -5,7 +5,7 @@ import * as path from "node:path";
 import * as fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parseOpenAPI } from "./parser/index";
-import { generateMCPServer } from "./generator/index";
+import { generate, getAvailableFormats } from "./generator/index";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,6 +35,7 @@ program
   .description("Transform an OpenAPI spec into agent interfaces")
   .option("-o, --output <dir>", "Output directory")
   .option("-n, --name <name>", "Project name override")
+  .option("-f, --format <formats...>", "Output formats (mcp, claude.md, agents.md)", ["mcp", "claude.md", "agents.md"])
   .action(async (input: string, opts: TransformOptions) => {
     await runTransform(input, opts);
   });
@@ -42,6 +43,7 @@ program
 interface TransformOptions {
   output?: string;
   name?: string;
+  format: string[];
 }
 
 async function runTransform(input: string, opts: TransformOptions): Promise<void> {
@@ -49,6 +51,15 @@ async function runTransform(input: string, opts: TransformOptions): Promise<void
   console.log(chalk.bold("  Agentify") + chalk.dim(` v${VERSION}`));
   console.log(chalk.dim("  Agent Interface Compiler"));
   console.log("");
+
+  // Validate formats
+  const available = getAvailableFormats();
+  for (const fmt of opts.format) {
+    if (!available.includes(fmt)) {
+      console.error(chalk.red(`  Unknown format: ${fmt}. Available: ${available.join(", ")}`));
+      process.exit(1);
+    }
+  }
 
   // Step 1: Parse
   const parseSpinner = ora("Analyzing OpenAPI spec...").start();
@@ -88,15 +99,19 @@ async function runTransform(input: string, opts: TransformOptions): Promise<void
   const projectName = opts.name ?? toKebabCase(ir.product.name) + "-mcp-server";
   const outputDir = path.resolve(opts.output ?? projectName);
 
-  // Step 3: Generate
-  const genSpinner = ora("Generating MCP Server...").start();
+  // Step 3: Generate all formats
+  const genSpinner = ora(`Generating ${opts.format.join(", ")}...`).start();
 
   try {
-    const result = await generateMCPServer(ir, outputDir);
-    genSpinner.succeed(chalk.green("Generated ") + chalk.bold("MCP Server") + chalk.dim(` (${result.filesWritten.length} files)`));
+    const results = await generate(ir, outputDir, opts.format);
+    const totalFiles = results.reduce((sum, r) => sum + r.filesWritten.length, 0);
+    const formatNames = results.map(r => r.format).join(" + ");
+    genSpinner.succeed(chalk.green("Generated ") + chalk.bold(formatNames) + chalk.dim(` (${totalFiles} files)`));
 
-    for (const w of result.warnings) {
-      console.log(chalk.yellow(`  ⚠ ${w}`));
+    for (const result of results) {
+      for (const w of result.warnings) {
+        console.log(chalk.yellow(`  ⚠ ${w}`));
+      }
     }
   } catch (err) {
     genSpinner.fail(chalk.red("Generation failed"));
@@ -110,6 +125,7 @@ async function runTransform(input: string, opts: TransformOptions): Promise<void
   console.log(chalk.dim("  ─────────────────────────────────────────"));
   console.log("");
   console.log(`  ${chalk.green("✓")} Output: ${chalk.bold(outputDir)}`);
+  console.log(`  ${chalk.green("✓")} Formats: ${chalk.bold(opts.format.join(", "))}`);
   console.log(`  ${chalk.green("✓")} Security scan: ${chalk.green("PASSED")}`);
   console.log("");
   console.log(chalk.bold("  Next steps:"));

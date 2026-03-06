@@ -76,7 +76,7 @@ npx agentify-cli transform https://api.example.com/openapi.json -n my-project
 **Output:**
 
 ```
-  Agentify v0.1.3
+  Agentify v0.2.0
   Agent Interface Compiler
 
   +-- 20 endpoints detected -> SMALL API strategy
@@ -84,7 +84,7 @@ npx agentify-cli transform https://api.example.com/openapi.json -n my-project
   +-- Auth: apiKey (SWAGGER_PETSTORE_API_KEY)
   +-- Strategy: Direct tool mapping — one tool per endpoint
 
-  > Generated MCP Server (8 files)
+  > Generated mcp + claude.md + agents.md (10 files)
   > Output: ./petstore-mcp-server
   > Security scan: PASSED
 ```
@@ -116,8 +116,8 @@ npx agentify-cli transform https://api.example.com/openapi.json -n my-project
 | Format | Status | Description |
 |--------|--------|-------------|
 | MCP Server | Available | Full server with tools, handlers, Dockerfile |
-| CLAUDE.md | Planned | Project context for Claude Code |
-| AGENTS.md | Planned | Universal agent instructions |
+| CLAUDE.md | Available | Project context for Claude Code |
+| AGENTS.md | Available | Universal agent instructions |
 | .cursorrules | Planned | Cursor IDE agent rules |
 | Skills | Planned | Agent instruction files for 30+ platforms |
 | llms.txt | Planned | LLM-readable documentation |

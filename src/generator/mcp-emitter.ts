@@ -189,7 +189,6 @@ export class MCPServerEmitter implements Emitter {
 
     lines.push("# Server Configuration");
     lines.push(`API_BASE_URL=${ir.product.baseUrl}`);
-    lines.push("MCP_SERVER_PORT=3000");
     lines.push("");
 
     return lines.join("\n");
@@ -422,27 +421,15 @@ const HANDLERS: Record<string, (params: Record<string, unknown>) => Promise<Tool
 };
 `;
 
-const DOCKERFILE_TEMPLATE = `FROM node:20-slim AS builder
+const DOCKERFILE_TEMPLATE = `FROM node:20-slim
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
-
-FROM node:20-slim
-WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./
 
 ENV NODE_ENV=production
-EXPOSE 3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=5s \\
-  CMD node -e "console.log('ok')" || exit 1
-
-CMD ["node", "dist/index.js"]
+CMD ["npx", "tsx", "src/index.ts"]
 `;
 
 const README_TEMPLATE = `# {{productName}} MCP Server

@@ -404,6 +404,7 @@ function extractRequestBodyProperties(
         type: prop.type?.toString() ?? "string",
         description: desc,
         required: isRequired,
+        in: "body",
         format: prop.format,
         enum: prop.enum as string[] | undefined,
         default: prop.default,
@@ -434,6 +435,7 @@ function extractRequestBodyProperties(
       type: schemaType,
       description: desc,
       required: isBodyRequired,
+      in: "body",
       format: schema.format,
       example: schema.example,
     });

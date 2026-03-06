@@ -30,11 +30,14 @@ export interface AuthRequirement {
 
 // ─── Schema ──────────────────────────────────────────────
 
+export type ParameterLocation = "path" | "query" | "header" | "cookie" | "body";
+
 export interface SchemaProperty {
   readonly name: string;
   readonly type: string;
   readonly description: string;
   readonly required: boolean;
+  readonly in?: ParameterLocation;
   readonly format?: string;
   readonly enum?: readonly string[];
   readonly default?: unknown;

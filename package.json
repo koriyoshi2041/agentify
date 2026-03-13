@@ -1,6 +1,6 @@
 {
   "name": "agentify-cli",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Agent Interface Compiler — One command. Every agent speaks your product.",
   "type": "module",
   "bin": {

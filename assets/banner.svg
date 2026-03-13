@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220" width="900" height="220">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1c1917"/>
+      <stop offset="100%" style="stop-color:#1c1917"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="220" rx="10" fill="#1c1917"/>
+
+  <!-- Subtle warm glow -->
+  <ellipse cx="450" cy="110" rx="400" ry="100" fill="#E8744F" opacity="0.018"/>
+
+  <!-- Left: Source -->
+  <text x="56" y="78" font-family="'SF Mono', 'Fira Code', 'Cascadia Code', monospace" font-size="13" fill="#a8a29e" letter-spacing="0.5">YOUR OPENAPI SPEC</text>
+
+  <!-- Arrow -->
+  <line x1="56" y1="100" x2="240" y2="100" stroke="#a8a29e" stroke-width="0.8" stroke-dasharray="4 3"/>
+  <text x="256" y="105" font-family="'SF Mono', 'Fira Code', monospace" font-size="16" fill="#E8744F" font-weight="600">compile</text>
+  <line x1="332" y1="100" x2="380" y2="100" stroke="#a8a29e" stroke-width="0.8" stroke-dasharray="4 3"/>
+  <polygon points="380,97 386,100 380,103" fill="#a8a29e"/>
+
+  <!-- Right: Output formats in clean grid -->
+  <g font-family="'SF Mono', 'Fira Code', 'Cascadia Code', monospace" font-size="12.5">
+    <!-- Row 1 -->
+    <text x="410" y="50" fill="#fafaf9">MCP Server</text>
+    <text x="556" y="50" fill="#fafaf9">CLAUDE.md</text>
+    <text x="690" y="50" fill="#fafaf9">AGENTS.md</text>
+
+    <!-- Row 2 -->
+    <text x="410" y="78" fill="#fafaf9">.cursorrules</text>
+    <text x="556" y="78" fill="#fafaf9">Skills</text>
+    <text x="690" y="78" fill="#fafaf9">llms.txt</text>
+
+    <!-- Row 3 -->
+    <text x="410" y="106" fill="#fafaf9">GEMINI.md</text>
+    <text x="556" y="106" fill="#fafaf9">A2A Card</text>
+    <text x="690" y="106" fill="#fafaf9">CLI</text>
+  </g>
+
+  <!-- Subtle dots before each format -->
+  <g fill="#E8744F" opacity="0.7">
+    <circle cx="402" cy="46" r="2.5"/>
+    <circle cx="548" cy="46" r="2.5"/>
+    <circle cx="682" cy="46" r="2.5"/>
+    <circle cx="402" cy="74" r="2.5"/>
+    <circle cx="548" cy="74" r="2.5"/>
+    <circle cx="682" cy="74" r="2.5"/>
+    <circle cx="402" cy="102" r="2.5"/>
+    <circle cx="548" cy="102" r="2.5"/>
+    <circle cx="682" cy="102" r="2.5"/>
+  </g>
+
+  <!-- Divider -->
+  <line x1="56" y1="144" x2="844" y2="144" stroke="#292524" stroke-width="0.8"/>
+
+  <!-- Bottom: command line example -->
+  <text x="56" y="172" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#78716c">$</text>
+  <text x="72" y="172" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#E8744F">npx agentify-cli</text>
+  <text x="210" y="172" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#fafaf9"> transform</text>
+  <text x="294" y="172" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#a8a29e"> https://api.example.com/openapi.json</text>
+
+  <!-- Bottom right: version -->
+  <text x="844" y="198" font-family="'SF Mono', 'Fira Code', monospace" font-size="10" fill="#44403c" text-anchor="end">v0.4.1</text>
+</svg>

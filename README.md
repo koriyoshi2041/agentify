@@ -3,7 +3,7 @@
 <h1>Agentify</h1>
 <p><strong>Agent Interface Compiler</strong> — One command. Every agent speaks your product.</p>
 
-<img src="assets/banner.png" alt="Agentify — OpenAPI to 9 agent interface formats" width="800">
+<img src="assets/banner.svg" alt="Agentify — OpenAPI to 9 agent interface formats" width="800">
 
 <br>
 

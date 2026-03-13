@@ -10,7 +10,11 @@ tmp/
 .turbo/
 
 # Private internal docs (never commit)
+docs/product-plan.md
+docs/vision-v2.md
 docs/launch-content/
 docs/launch-playbook.md
-research/marketing/
-research/strategy/
+research/
+
+# Test artifacts
+test-output/

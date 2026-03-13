@@ -149,14 +149,14 @@ function toKebabCase(str: string): string {
 
 program
   .command("self-describe")
-  .description("Output Agentify's own agent interface files (skills.json, CLAUDE.md, AGENTS.md)")
+  .description("Output Agentify's own agent interface files (agentify.md skill, CLAUDE.md, AGENTS.md)")
   .option("-o, --output <dir>", "Output directory", ".")
   .action(async (opts: { output: string }) => {
     const selfDir = resolveSelfDir();
     const outputDir = path.resolve(opts.output);
     fs.mkdirSync(outputDir, { recursive: true });
 
-    const files = ["skills.json", "CLAUDE.md", "AGENTS.md"];
+    const files = ["agentify.md", "CLAUDE.md", "AGENTS.md"];
     for (const file of files) {
       const src = path.join(selfDir, file);
       const dest = path.join(outputDir, file);

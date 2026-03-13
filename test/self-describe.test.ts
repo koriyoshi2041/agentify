@@ -6,56 +6,55 @@ import { getAvailableFormats } from "../src/generator/index";
 const SELF_DIR = path.resolve(process.cwd(), "self");
 
 describe("Self-Description Files", () => {
-  describe("skills.json", () => {
-    it("exists and is valid JSON", () => {
-      const raw = fs.readFileSync(path.join(SELF_DIR, "skills.json"), "utf-8");
-      const doc = JSON.parse(raw);
-      expect(doc.name).toBe("Agentify");
+  describe("agentify.md (Claude Code skill)", () => {
+    it("exists and has valid YAML frontmatter", () => {
+      const content = fs.readFileSync(
+        path.join(SELF_DIR, "agentify.md"),
+        "utf-8",
+      );
+      expect(content).toMatch(/^---\n/);
+      expect(content).toContain("name: agentify");
+      expect(content).toContain("description:");
     });
 
-    it("has correct structure", () => {
-      const raw = fs.readFileSync(path.join(SELF_DIR, "skills.json"), "utf-8");
-      const doc = JSON.parse(raw);
-      expect(doc.description).toContain("Agent Interface Compiler");
-      expect(doc.auth.type).toBe("none");
-      expect(doc.skills).toBeInstanceOf(Array);
-      expect(doc.skills.length).toBeGreaterThan(0);
-      expect(doc.domains).toBeInstanceOf(Array);
+    it("has a description that mentions agent interface formats", () => {
+      const content = fs.readFileSync(
+        path.join(SELF_DIR, "agentify.md"),
+        "utf-8",
+      );
+      const match = content.match(/description:\s*(.+)/);
+      expect(match).not.toBeNull();
+      expect(match![1]).toContain("agent interface formats");
     });
 
-    it("describes the transform skill correctly", () => {
-      const raw = fs.readFileSync(path.join(SELF_DIR, "skills.json"), "utf-8");
-      const doc = JSON.parse(raw);
-      const transform = doc.skills.find(
-        (s: { id: string }) => s.id === "transform",
+    it("contains the transform command usage", () => {
+      const content = fs.readFileSync(
+        path.join(SELF_DIR, "agentify.md"),
+        "utf-8",
       );
-      expect(transform).toBeDefined();
-      expect(transform.name).toBe("transform");
-      expect(transform.parameters).toBeInstanceOf(Array);
-      expect(transform.parameters.length).toBeGreaterThanOrEqual(1);
-
-      const inputParam = transform.parameters.find(
-        (p: { name: string }) => p.name === "input",
-      );
-      expect(inputParam).toBeDefined();
-      expect(inputParam.required).toBe(true);
+      expect(content).toContain("npx agentify-cli transform");
+      expect(content).toContain("--output");
+      expect(content).toContain("--format");
     });
 
-    it("lists all available formats in the format parameter description", () => {
-      const raw = fs.readFileSync(path.join(SELF_DIR, "skills.json"), "utf-8");
-      const doc = JSON.parse(raw);
-      const transform = doc.skills.find(
-        (s: { id: string }) => s.id === "transform",
+    it("lists all available formats", () => {
+      const content = fs.readFileSync(
+        path.join(SELF_DIR, "agentify.md"),
+        "utf-8",
       );
-      const formatParam = transform.parameters.find(
-        (p: { name: string }) => p.name === "format",
-      );
-      expect(formatParam).toBeDefined();
-
       const available = getAvailableFormats();
       for (const fmt of available) {
-        expect(formatParam.description).toContain(fmt);
+        expect(content).toContain(fmt);
       }
+    });
+
+    it("includes examples section", () => {
+      const content = fs.readFileSync(
+        path.join(SELF_DIR, "agentify.md"),
+        "utf-8",
+      );
+      expect(content).toContain("## Examples");
+      expect(content).toContain("petstore.swagger.io");
     });
   });
 

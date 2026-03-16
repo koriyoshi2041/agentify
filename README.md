@@ -80,15 +80,17 @@ Example output:
 
 ## Tested on Real APIs
 
-Agentify handles APIs of any size — from 20-endpoint demos to 1000+ endpoint production APIs.
+Agentify handles APIs of any size — from 13-endpoint apps to 1,000+ endpoint platforms.
 
-| API | Endpoints | Domains | tsc | Server starts |
-|-----|-----------|---------|-----|---------------|
+| API | Endpoints | Domains | TypeScript | Server starts |
+|-----|-----------|---------|------------|---------------|
+| **Notion** | 13 | 5 | PASS | PASS |
 | **Petstore** (Swagger 2.0) | 20 | 3 | PASS | PASS |
-| **Petstore** (OpenAPI 3.0) | 19 | 3 | PASS | PASS |
+| **Slack Web API** | 174 | 55 | PASS | PASS |
+| **Stripe** | 452 | 1 | PASS | PASS |
 | **GitHub REST API** | 1,093 | 43 | PASS | PASS |
 
-The GitHub REST API is one of the largest OpenAPI specs in the wild — 1,093 endpoints across 43 domains (actions, repos, pulls, issues, git, users, orgs, and more). Agentify generates a working MCP server with 1,093 tools, and it compiles and starts without errors.
+Every generated MCP server compiles with zero TypeScript errors and starts immediately. The GitHub REST API — 1,093 endpoints across 43 domains — produces a working server with 1,093 tools.
 
 ## How It Works
 

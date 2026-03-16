@@ -1,7 +1,7 @@
 <div align="center">
 
 <h1>Agentify</h1>
-<p><strong>Agent Interface Compiler</strong> — One command. Every agent speaks your product.</p>
+<p>OpenAPI in. Agent interfaces out.</p>
 
 <img src="assets/banner.svg" alt="Agentify — OpenAPI to 9 agent interface formats" width="800">
 
@@ -16,84 +16,56 @@
 
 ---
 
-Agentify compiles any OpenAPI specification into **9 agent interface formats** — MCP Server, CLAUDE.md, AGENTS.md, .cursorrules, Skills, llms.txt, GEMINI.md, A2A Card, and CLI. Instead of hand-building each format separately, generate them all from a single source of truth.
+Your API has new users it doesn't know about yet — AI agents.
+
+Claude Code reads `CLAUDE.md`. Cursor reads `.cursorrules`. Codex and Copilot read `AGENTS.md`. And if you want your API callable as a tool, you need an MCP server. That's a lot of files to write and keep in sync with your API spec.
+
+Agentify reads your OpenAPI spec and writes them all.
 
 ```bash
 npx agentify-cli transform https://petstore.swagger.io/v2/swagger.json
 ```
 
 <p align="center">
-  <img src="docs/demo.gif" alt="Agentify demo — transform OpenAPI to MCP Server in 30 seconds" width="700">
+  <img src="docs/demo.gif" alt="Agentify demo" width="700">
 </p>
 
-## The Problem
+## What You Get
 
-AI agents are the new users of your API. But making your product agent-accessible requires building and maintaining multiple interface formats:
+One command generates up to **9 formats** from a single OpenAPI spec:
 
-| Format | Who consumes it | Manual effort |
-|--------|----------------|---------------|
-| MCP Server | Claude, ChatGPT, Copilot | Days of coding |
-| CLAUDE.md | Claude Code | Write from scratch |
-| AGENTS.md | Codex, Copilot, Cursor, Gemini CLI | Write from scratch |
-| .cursorrules | Cursor IDE | Write from scratch |
-| Skills | 30+ agent platforms | Per-platform work |
-| llms.txt | LLM search engines | Manual authoring |
-| GEMINI.md | Gemini CLI | Write from scratch |
-| A2A Card | Google Agent-to-Agent protocol | JSON schema work |
-| CLI | Developers, scripts, CI/CD | Build from scratch |
-
-**That's 9+ formats to build, test, and keep in sync.** Every API change means updating all of them.
-
-## The Solution
-
-Agentify is a compiler. OpenAPI in, every agent format out.
-
-```
-                    +---> MCP Server (with Dockerfile)
-                    |
-                    +---> CLAUDE.md
-                    |
-                    +---> AGENTS.md
-                    |
-OpenAPI Spec -----> +---> .cursorrules
-                    |
-                    +---> Skills
-                    |
-                    +---> llms.txt
-                    |
-                    +---> GEMINI.md
-                    |
-                    +---> A2A Card
-                    |
-                    +---> CLI (standalone command-line tool)
-```
+| Format | Used by |
+|--------|---------|
+| **MCP Server** | Claude, ChatGPT, Copilot (with Dockerfile) |
+| **CLAUDE.md** | Claude Code |
+| **AGENTS.md** | Codex, Copilot, Cursor, Gemini CLI |
+| **.cursorrules** | Cursor IDE |
+| **Skills** | Agent platforms |
+| **llms.txt** | LLM search engines |
+| **GEMINI.md** | Gemini CLI |
+| **A2A Card** | Google Agent-to-Agent protocol |
+| **CLI** | A standalone command-line tool that makes real API calls |
 
 ## Quick Start
 
 ```bash
-# Transform any OpenAPI spec
+# Transform any OpenAPI spec (Swagger 2.0 or OpenAPI 3.x)
 npx agentify-cli transform https://petstore.swagger.io/v2/swagger.json
 
-# Specify output directory
-npx agentify-cli transform ./my-api.yaml -o ./output
+# Pick specific formats
+npx agentify-cli transform ./my-api.yaml -f mcp claude.md agents.md
 
-# Override project name
-npx agentify-cli transform https://api.example.com/openapi.json -n my-project
-
-# Generate only specific formats
-npx agentify-cli transform ./my-api.yaml -f mcp claude.md
-
-# Generate a standalone CLI tool from your API
+# Generate a standalone CLI tool
 npx agentify-cli transform ./my-api.yaml -f cli -o my-api-cli
 
-# Get Agentify's own agent interface files (self-describe)
-npx agentify-cli self-describe -o .
+# Custom output directory and project name
+npx agentify-cli transform https://api.example.com/openapi.json -o ./output -n my-project
 ```
 
-**Output:**
+Example output:
 
 ```
-  Agentify v0.4.0
+  Agentify v0.4.1
   Agent Interface Compiler
 
   +-- 20 endpoints detected -> SMALL API strategy
@@ -106,80 +78,42 @@ npx agentify-cli self-describe -o .
   > Security scan: PASSED
 ```
 
-## Features
+## Tested on Real APIs
 
-**Smart Strategy Selection** — Automatically chooses the right generation strategy based on API size:
+Agentify handles APIs of any size — from 20-endpoint demos to 1000+ endpoint production APIs.
 
-| API Size | Endpoints | Strategy | Why |
-|----------|-----------|----------|-----|
-| Small | < 30 | Direct mapping | One tool per endpoint, simple and complete |
-| Medium | 30-100 | Direct mapping (Tool Search planned) | Detects scale; optimized generation coming soon |
-| Large | 100+ | Direct mapping (Code Exec planned) | Detects scale; context-optimized generation coming soon |
+| API | Endpoints | Domains | tsc | Server starts |
+|-----|-----------|---------|-----|---------------|
+| **Petstore** (Swagger 2.0) | 20 | 3 | PASS | PASS |
+| **Petstore** (OpenAPI 3.0) | 19 | 3 | PASS | PASS |
+| **GitHub REST API** | 1,093 | 43 | PASS | PASS |
 
-**Security First** — Every generated artifact passes through:
-- Input sanitization (blocks eval, exec, Function constructor, require/import injection)
-- Handlebars template injection prevention
-- Prompt injection pattern detection
-- Generated code security scanning
-
-**Production Ready** — Generated MCP servers include:
-- TypeScript source with full type safety
-- Dockerfile for containerized deployment
-- Environment variable configuration (.env.example)
-- Stdio transport (standard MCP protocol)
-
-## Output Format Status
-
-| Format | Status | Description |
-|--------|--------|-------------|
-| MCP Server | Available | Full server with tools, handlers, Dockerfile |
-| CLAUDE.md | Available | Project context for Claude Code |
-| AGENTS.md | Available | Universal agent instructions (Linux Foundation standard) |
-| .cursorrules | Available | Cursor IDE agent rules |
-| Skills | Available | Structured capability file for agent platforms |
-| llms.txt | Available | LLM-readable condensed documentation |
-| GEMINI.md | Available | Gemini CLI project context |
-| A2A Card | Available | Google Agent-to-Agent discovery card |
-| CLI | Available | Standalone command-line tool (opt-in: `-f cli`) |
+The GitHub REST API is one of the largest OpenAPI specs in the wild — 1,093 endpoints across 43 domains (actions, repos, pulls, issues, git, users, orgs, and more). Agentify generates a working MCP server with 1,093 tools, and it compiles and starts without errors.
 
 ## How It Works
 
 ```
-1. PARSE        OpenAPI 3.x / Swagger 2.0 spec (URL or file)
-                  |
-2. SANITIZE     Strip dangerous patterns from all spec fields
-                  |
-3. ANALYZE      Detect domains, auth, scale -> pick strategy
-                  |
-4. COMPILE      Generate AgentifyIR (intermediate representation)
-                  |
-5. EMIT         Run selected emitters (MCP, Skills, Docs, etc.)
-                  |
-6. SCAN         Security scan all generated code
-                  |
-7. OUTPUT       Write files to disk
+OpenAPI Spec (URL or file)
+    |
+    v
+  PARSE ──> SANITIZE ──> ANALYZE ──> COMPILE ──> EMIT ──> SCAN ──> OUTPUT
+              |              |           |          |        |
+          Strip unsafe    Detect     Build IR    Run      Security
+          patterns        domains,   (typed)     emitters  scan all
+                          auth,                            generated
+                          API scale                        code
 ```
 
-**AgentifyIR** is the canonical intermediate representation — a flat, typed structure that captures everything an emitter needs: product metadata, capabilities (endpoints), domains, auth config, and generation strategy.
+Agentify parses your spec into an intermediate representation (**AgentifyIR**), then runs pluggable emitters to produce each output format. Every generated artifact goes through a security scan before being written to disk.
 
-## Architecture
-
-```
-agentify/
-+-- src/
-|   +-- cli.ts              # CLI entry point (Commander.js)
-|   +-- parser/             # OpenAPI parsing + input sanitization
-|   +-- generator/          # Pluggable emitters for each format
-|   |   +-- templates/      # Handlebars templates
-|   +-- security/           # Input sanitization + output scanning
-|   +-- types.ts            # AgentifyIR type definitions
-+-- templates/              # Generated project templates
-+-- test/                   # Vitest test suite
-```
+**Security built in:**
+- Input sanitization (blocks `eval`, `exec`, `Function` constructor injection)
+- Prompt injection pattern detection
+- Generated code scanning
 
 ## Contributing
 
-Agentify welcomes contributions, especially **new emitters** (output formats). Each emitter implements a simple interface:
+New emitters are welcome. Each one implements a simple interface:
 
 ```typescript
 import type { Emitter, AgentifyIR, EmitterOptions, EmitterResult } from "../types";
@@ -190,41 +124,32 @@ export class MyFormatEmitter implements Emitter {
 
   async emit(ir: AgentifyIR, options: EmitterOptions): Promise<EmitterResult> {
     // Generate output files from the IR
-    return { filesWritten: [...], warnings: [] };
+    return { format: this.format, filesWritten: [...], warnings: [] };
   }
 }
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide.
+```
+agentify/
++-- src/
+|   +-- cli.ts              # CLI entry point
+|   +-- parser/             # OpenAPI parsing + sanitization
+|   +-- generator/          # Pluggable emitters for each format
+|   +-- security/           # Input sanitization + output scanning
+|   +-- types.ts            # AgentifyIR type definitions
++-- test/                   # Vitest test suite (136 tests)
+```
 
-## Roadmap
+## Status
 
-- [x] **M0: Foundation** — OpenAPI parser, MCP emitter, security scanner, CLI
-- [x] **M1: Multi-Format** — ~~CLAUDE.md~~, ~~AGENTS.md~~, ~~Skills~~, ~~.cursorrules~~, ~~llms.txt~~, ~~GEMINI.md~~, ~~A2A Card~~
-- [ ] **M2: Intelligence** — Capability graph, semantic grouping, context optimization
-- [ ] **M3: Self-Serve** — Web UI, one-click deploy, registry integrations
-- [ ] **M4: Scale** — Enterprise features, custom emitters, CI/CD integration
+This is early. It works on Swagger 2.0 and OpenAPI 3.x specs, handles auth detection, domain grouping, and API scale analysis. If you try it and something breaks, [open an issue](https://github.com/koriyoshi2041/agentify/issues) — that helps a lot.
 
-## Compared to Alternatives
-
-| Feature | Agentify | Speakeasy | Stainless | openapi-to-skills |
-|---------|----------|-----------|-----------|-------------------|
-| MCP Server | Yes | Yes | No | No |
-| Skills | Yes | CLI only | No | Yes |
-| CLAUDE.md | Yes | No | No | No |
-| AGENTS.md | Yes | No | No | No |
-| .cursorrules | Yes | No | No | No |
-| llms.txt | Yes | Yes | No | No |
-| GEMINI.md | Yes | No | No | No |
-| A2A Card | Yes | No | No | No |
-| CLI generation | Yes | No | No | No |
-| Self-as-Skills | Yes | No | No | No |
-| Context-aware strategy | Yes | No | Yes | No |
-| Security scanning | Yes | Unknown | Unknown | No |
-| Open source | MIT | No | No | MIT |
-
-**No existing tool compiles one OpenAPI spec into all agent interface formats.**
+- [x] OpenAPI parser, MCP emitter, security scanner, CLI
+- [x] 9 output formats: MCP, CLAUDE.md, AGENTS.md, .cursorrules, Skills, llms.txt, GEMINI.md, A2A, CLI
+- [ ] Capability graph and semantic grouping
+- [ ] Web UI and one-click deploy
+- [ ] Custom emitter plugins
 
 ## License
 
-[MIT](LICENSE) -- Agentify Contributors
+[MIT](LICENSE)

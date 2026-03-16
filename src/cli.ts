@@ -147,6 +147,76 @@ function toKebabCase(str: string): string {
     .toLowerCase();
 }
 
+// ─── Parse Command ──────────────────────────────────────
+
+interface ParseOptions {
+  pretty: boolean;
+  compact: boolean;
+  summary: boolean;
+}
+
+program
+  .command("parse <source>")
+  .description("Parse an OpenAPI spec and output the IR as JSON to stdout")
+  .option("-p, --pretty", "Pretty-print JSON (default)", true)
+  .option("--compact", "Compact single-line JSON")
+  .option("--summary", "Output only product metadata, domain names, and capability names")
+  .action(async (source: string, opts: ParseOptions) => {
+    await runParse(source, opts);
+  });
+
+async function runParse(source: string, opts: ParseOptions): Promise<void> {
+  try {
+    const result = await parseOpenAPI(source);
+    const { ir, warnings } = result;
+
+    // Warnings go to stderr, never stdout
+    for (const w of warnings) {
+      process.stderr.write(`[warning] ${w}\n`);
+    }
+
+    const output = opts.summary
+      ? buildSummary(ir, warnings)
+      : ir;
+
+    const indent = opts.compact ? undefined : 2;
+    process.stdout.write(JSON.stringify(output, null, indent) + "\n");
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`[error] Failed to parse OpenAPI spec: ${message}\n`);
+    process.exit(1);
+  }
+}
+
+function buildSummary(ir: import("./types").AgentifyIR, warnings: readonly string[]) {
+  return {
+    product: {
+      name: ir.product.name,
+      description: ir.product.description,
+      baseUrl: ir.product.baseUrl,
+      version: ir.product.version,
+    },
+    domains: ir.domains.map(d => d.name),
+    capabilities: ir.capabilities.map(c => ({
+      name: c.name,
+      method: c.http.method.toUpperCase(),
+      path: c.http.path,
+      description: c.description,
+    })),
+    auth: {
+      type: ir.auth.type,
+      envVariable: ir.auth.envVariable,
+    },
+    strategy: {
+      scale: ir.strategy.scale,
+      endpointCount: ir.strategy.endpointCount,
+    },
+    warnings: [...warnings],
+  };
+}
+
+// ─── Self-Describe Command ──────────────────────────────
+
 program
   .command("self-describe")
   .description("Output Agentify's own agent interface files (agentify.md skill, CLAUDE.md, AGENTS.md)")

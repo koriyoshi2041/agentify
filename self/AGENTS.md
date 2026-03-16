@@ -2,51 +2,71 @@
 
 ## Identity
 
-Agentify is an Agent Interface Compiler. It transforms OpenAPI specifications into 9 agent interface formats from a single source of truth.
+Agentify is an Agent Interface Compiler. It reads OpenAPI specifications and either returns structured data about the API (parse mode) or generates agent interface code (transform mode).
 
 Install: `npm install -g agentify-cli` or use via `npx agentify-cli`.
 
-## Capabilities
+## How It Works
 
-### transform
+Agentify has a hybrid architecture. Some outputs are best generated deterministically (MCP servers, CLIs, A2A cards) while others — like documentation for intelligent agents — are better written by agents themselves using structured data.
 
-Convert an OpenAPI specification into agent interface formats.
+**Parse mode** (`agentify parse <spec>`) outputs the intermediate representation (IR) as JSON. The IR contains product metadata, domain groupings, typed capabilities, auth configuration, and a scale-based generation strategy. Use this when you need to understand an API or write your own agent documentation.
 
-```bash
-npx agentify-cli transform <input> [-o dir] [-n name] [-f format1 format2 ...]
-```
+**Transform mode** (`agentify transform <spec>`) generates runnable code and configuration files. It supports 9 output formats. Use this when you need deterministic artifacts.
 
-- **Input**: URL or file path to an OpenAPI spec (Swagger 2.0, OAS 3.x)
-- **Output**: Generated project with selected formats (default: all 9)
-- **Formats**: mcp, claude.md, agents.md, cursorrules, skills, llms.txt, gemini.md, a2a, cli
-- **Side effects**: Creates files in the output directory
+**Self-describe** (`agentify self-describe`) outputs Agentify's own agent interface files.
 
-### self-describe
+## Commands
 
-Output Agentify's own agent interface files.
+| Command | Purpose | Output |
+|---------|---------|--------|
+| `parse <spec>` | Structured API analysis | JSON (AgentifyIR) to stdout |
+| `transform <spec>` | Code generation | Files in output directory |
+| `self-describe` | Agentify's own interfaces | skills.json, CLAUDE.md, AGENTS.md |
 
-```bash
-npx agentify-cli self-describe [-o dir]
-```
+### Transform Options
 
-- **Output**: skills.json, CLAUDE.md, AGENTS.md describing Agentify itself
+- `-o, --output <dir>` — Output directory
+- `-n, --name <name>` — Override project name
+- `-f, --format <formats...>` — Select formats: mcp, claude.md, agents.md, cursorrules, skills, llms.txt, gemini.md, a2a, cli
 
-## Authentication
+## When to Use Each Command
 
-No authentication required.
+Use `parse` when you are an agent that wants to reason about an API — its domains, capabilities, auth scheme, and scale. The JSON output is designed for programmatic consumption. This is the right choice if you plan to write documentation, analyze API coverage, or build custom tooling.
 
-## Protocols
+Use `transform` when you need generated code: an MCP server with tool handlers, a standalone CLI, an A2A discovery card, or a skills manifest. These formats require structural correctness that benefits from deterministic generation.
 
-- **Interface**: Command-line (CLI)
-- **Input**: OpenAPI/Swagger specifications (URL or local file)
-- **Output**: File system (generated project directory)
+## Supported Inputs
+
+- Swagger 2.0 and OpenAPI 3.x (JSON or YAML)
+- URL or local file path
+- Lenient parsing: non-compliant specs are handled gracefully
+
+## Key Capabilities
+
+- Parses OpenAPI into a flat, agent-optimized intermediate representation
+- Detects auth schemes (apiKey, bearer, oauth2, basic) and maps them to environment variables
+- Groups endpoints into semantic domains automatically
+- Selects generation strategy by API scale (small/medium/large)
+- Sanitizes all spec inputs to prevent injection in generated code
+- Scans generated output for security issues
+
+## Tested At Scale
+
+| API | Endpoints | Notes |
+|-----|-----------|-------|
+| Notion | 13 | Small, clean spec |
+| Petstore | 20 | Swagger 2.0 reference |
+| httpbin | 73 | Medium, diverse operations |
+| Slack | 174 | Large, complex auth |
+| Stripe | 452 | Very large, nested schemas |
+| GitHub | 1,093 | Stress test scale |
 
 ## Constraints
 
 - Requires Node.js 18+
-- Internet access needed for remote OpenAPI spec URLs
-- Generated MCP servers require their own setup (`npm install`, env config)
-- CLI format (`-f cli`) generates a separate project; avoid combining with `mcp` in the same output directory
+- Remote specs require internet access
+- Generated MCP servers need their own `npm install` and env configuration
 
 ## Context
 

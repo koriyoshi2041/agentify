@@ -35,8 +35,19 @@ export interface ParseResult {
 export async function parseOpenAPISpec(input: string): Promise<ParseResult> {
   const warnings: string[] = [];
 
-  const rawApi = await SwaggerParser.validate(input) as OASDocument;
-  const api = await SwaggerParser.dereference(rawApi) as OASDocument;
+  // Try strict validation first. If that fails, fall back to lenient
+  // parsing (dereference without validation) + spec normalization.
+  // This allows non-compliant specs (httpbin, Spotify, etc.) to be
+  // processed with warnings instead of hard failures.
+  let api: OASDocument;
+  try {
+    api = await SwaggerParser.validate(input) as OASDocument;
+  } catch {
+    warnings.push("[LENIENT] Spec failed strict validation — applying lenient parsing with auto-normalization");
+    const raw = await SwaggerParser.parse(input);
+    normalizeSpec(raw as Record<string, unknown>, warnings);
+    api = await SwaggerParser.dereference(raw) as OASDocument;
+  }
 
   const product = extractProductMeta(api, warnings);
   const auth = extractAuthConfig(api, warnings);
@@ -765,6 +776,106 @@ function determineStrategy(endpointCount: number): GenerationStrategy {
     endpointCount,
     reason: `${endpointCount} endpoints — Code Execution + Docs Search recommended`,
   };
+}
+
+// ─── Spec Normalization (lenient parsing) ─────────────
+
+const VALID_PARAM_IN = new Set(["path", "query", "header", "cookie", "body"]);
+
+/**
+ * Walk a raw parsed spec and fix common non-compliant patterns so that
+ * dereference() and the extraction logic can process the spec gracefully.
+ *
+ * Every normalization emits a warning so the user knows what was changed.
+ */
+function normalizeSpec(spec: Record<string, unknown>, warnings: string[]): void {
+  const paths = spec["paths"] as Record<string, unknown> | undefined;
+  if (!paths) return;
+
+  for (const [pathKey, pathItem] of Object.entries(paths)) {
+    if (!pathItem || typeof pathItem !== "object") continue;
+    const pathObj = pathItem as Record<string, unknown>;
+
+    for (const method of [...HTTP_METHODS, "parameters"]) {
+      const node = pathObj[method];
+      if (!node || typeof node !== "object") continue;
+
+      if (method === "parameters") {
+        // Path-level parameters
+        normalizeParameters(node as unknown[], pathKey, "path-level", warnings);
+      } else {
+        // Operation-level
+        const op = node as Record<string, unknown>;
+        if (Array.isArray(op["parameters"])) {
+          normalizeParameters(op["parameters"], pathKey, method, warnings);
+        }
+        normalizeRequestBody(op, pathKey, method, warnings);
+      }
+    }
+  }
+}
+
+function normalizeParameters(
+  params: unknown[],
+  path: string,
+  method: string,
+  warnings: string[],
+): void {
+  for (const param of params) {
+    if (!param || typeof param !== "object") continue;
+    const p = param as Record<string, unknown>;
+
+    // Fix invalid "in" values (e.g. httpbin uses "url" instead of "path")
+    if (typeof p["in"] === "string" && !VALID_PARAM_IN.has(p["in"])) {
+      const original = p["in"];
+      // "url" almost always means "path"; anything else defaults to "query"
+      p["in"] = original === "url" ? "path" : "query";
+      warnings.push(`[LENIENT] ${method.toUpperCase()} ${path}: parameter "${p["name"]}" has invalid in="${original}", normalized to "${p["in"]}"`);
+    }
+
+    // Ensure "required" is boolean
+    if (p["required"] !== undefined && typeof p["required"] !== "boolean") {
+      p["required"] = Boolean(p["required"]);
+      warnings.push(`[LENIENT] ${method.toUpperCase()} ${path}: parameter "${p["name"]}" has non-boolean required, normalized`);
+    }
+
+    // Ensure path params have required=true (spec requirement)
+    if (p["in"] === "path" && p["required"] !== true) {
+      p["required"] = true;
+    }
+
+    // Add missing schema for Swagger 2.0-style params that have "type" at top level
+    if (!p["schema"] && typeof p["type"] === "string" && p["in"] !== "body") {
+      p["schema"] = { type: p["type"] };
+      if (p["format"]) (p["schema"] as Record<string, unknown>)["format"] = p["format"];
+      if (p["enum"]) (p["schema"] as Record<string, unknown>)["enum"] = p["enum"];
+      if (p["default"] !== undefined) (p["schema"] as Record<string, unknown>)["default"] = p["default"];
+    }
+  }
+}
+
+function normalizeRequestBody(
+  operation: Record<string, unknown>,
+  path: string,
+  method: string,
+  warnings: string[],
+): void {
+  const body = operation["requestBody"] as Record<string, unknown> | undefined;
+  if (!body?.["content"] || typeof body["content"] !== "object") return;
+
+  const content = body["content"] as Record<string, unknown>;
+  for (const [mediaType, mediaObj] of Object.entries(content)) {
+    if (!mediaObj || typeof mediaObj !== "object") continue;
+    const media = mediaObj as Record<string, unknown>;
+    const schema = media["schema"] as Record<string, unknown> | undefined;
+    if (!schema) continue;
+
+    // Fix schema.required being non-array (e.g. Spotify uses boolean)
+    if (schema["required"] !== undefined && !Array.isArray(schema["required"])) {
+      warnings.push(`[LENIENT] ${method.toUpperCase()} ${path}: ${mediaType} schema.required is ${typeof schema["required"]}, removed`);
+      delete schema["required"];
+    }
+  }
 }
 
 function buildJsonSchema(

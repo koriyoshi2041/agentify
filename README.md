@@ -86,11 +86,12 @@ Agentify handles APIs of any size — from 13-endpoint apps to 1,000+ endpoint p
 |-----|-----------|---------|------------|---------------|
 | **Notion** | 13 | 5 | PASS | PASS |
 | **Petstore** (Swagger 2.0) | 20 | 3 | PASS | PASS |
+| **httpbin** (non-compliant spec) | 73 | 11 | PASS | PASS |
 | **Slack Web API** | 174 | 55 | PASS | PASS |
 | **Stripe** | 452 | 1 | PASS | PASS |
 | **GitHub REST API** | 1,093 | 43 | PASS | PASS |
 
-Every generated MCP server compiles with zero TypeScript errors and starts immediately. The GitHub REST API — 1,093 endpoints across 43 domains — produces a working server with 1,093 tools.
+Every generated MCP server compiles with zero TypeScript errors and starts immediately. Non-compliant specs (like httpbin) are auto-normalized with warnings instead of rejected. The GitHub REST API — 1,093 endpoints across 43 domains — produces a working server with 1,093 tools.
 
 ## How It Works
 

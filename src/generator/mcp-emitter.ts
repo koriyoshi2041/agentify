@@ -287,13 +287,25 @@ function generateZodShape(cap: Capability): string {
   );
   const requiredSet = new Set(cap.input.required);
 
-  if (props.length === 0) {
+  // Deduplicate properties by name — path params (listed first) take
+  // precedence over body params that share the same name (e.g. `username`
+  // in PUT /user/{username} with a User body that also has `username`).
+  const seen = new Set<string>();
+  const uniqueProps = props.filter(p => {
+    if (seen.has(p.name)) return false;
+    seen.add(p.name);
+    return true;
+  });
+
+  if (uniqueProps.length === 0) {
     return "{}";
   }
 
-  const lines = props.map(p => {
+  // Always quote property names so that names containing hyphens or other
+  // non-identifier characters (e.g. "enterprise-team") emit valid JS.
+  const lines = uniqueProps.map(p => {
     const isRequired = requiredSet.has(p.name);
-    return `    ${p.name}: ${schemaPropertyToZod(p, isRequired)}`;
+    return `    "${p.name}": ${schemaPropertyToZod(p, isRequired)}`;
   });
 
   return `{\n${lines.join(",\n")},\n  }`;

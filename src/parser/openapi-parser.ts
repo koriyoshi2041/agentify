@@ -226,7 +226,47 @@ function extractCapabilities(api: OASDocument, warnings: string[]): Capability[]
     }
   }
 
-  return capabilities;
+  return deduplicateToolNames(capabilities);
+}
+
+/**
+ * Disambiguate duplicate tool names that arise when multiple endpoints
+ * resolve to the same name (e.g. GET /anything and GET /anything/{anything}
+ * both become `get_anything`).
+ *
+ * Strategy: append `_by_<pathParam>` for endpoints that have path params.
+ * Fallback: numeric suffix for any remaining collisions.
+ */
+function deduplicateToolNames(capabilities: Capability[]): Capability[] {
+  const nameCount = new Map<string, number>();
+  for (const cap of capabilities) {
+    nameCount.set(cap.name, (nameCount.get(cap.name) ?? 0) + 1);
+  }
+
+  const hasDuplicates = Array.from(nameCount.values()).some(c => c > 1);
+  if (!hasDuplicates) return capabilities;
+
+  // First pass: disambiguate by appending path parameter names
+  const firstPass = capabilities.map(cap => {
+    if ((nameCount.get(cap.name) ?? 0) <= 1) return cap;
+
+    const pathParams = cap.http.path.match(/\{(\w+)\}/g)?.map(m => m.slice(1, -1)) ?? [];
+    if (pathParams.length > 0) {
+      return { ...cap, name: `${cap.name}_by_${pathParams.join("_and_")}` };
+    }
+    return cap;
+  });
+
+  // Second pass: if duplicates remain, add numeric suffixes
+  const finalCount = new Map<string, number>();
+  return firstPass.map(cap => {
+    const count = (finalCount.get(cap.name) ?? 0) + 1;
+    finalCount.set(cap.name, count);
+    if (count > 1) {
+      return { ...cap, name: `${cap.name}_${count}` };
+    }
+    return cap;
+  });
 }
 
 function buildCapability(

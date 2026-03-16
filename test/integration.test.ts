@@ -104,6 +104,36 @@ describe("Parser → Generator Integration", () => {
     expect(readme).toContain("pet");
   });
 
+  it("generates unique tool names (no duplicates)", async () => {
+    const { ir } = await parseOpenAPI(PETSTORE_URL);
+
+    const names = ir.capabilities.map(c => c.name);
+    const uniqueNames = new Set(names);
+    expect(uniqueNames.size).toBe(names.length);
+  });
+
+  it("generates quoted Zod property names and no duplicate properties", async () => {
+    const { ir } = await parseOpenAPI(PETSTORE_URL);
+
+    const outputDir = path.join(TEST_OUTPUT_DIR, "petstore-zod-check");
+    await generateMCPServer(ir, outputDir);
+
+    const toolsSrc = await fs.readFile(path.join(outputDir, "src/tools.ts"), "utf-8");
+
+    // All property names should be quoted (valid JS even with hyphens)
+    const unquotedProps = toolsSrc.match(/^\s{4}(\w[\w-]*\w)\s*:/gm);
+    expect(unquotedProps ?? []).toHaveLength(0);
+
+    // No duplicate property names within any single Zod shape
+    // Extract each tool's Zod shape block and check for duplicate keys
+    const shapeBlocks = toolsSrc.match(/\{[\s\S]*?\}/g) ?? [];
+    for (const block of shapeBlocks) {
+      const propNames = [...block.matchAll(/"(\w+)":\s*z\./g)].map(m => m[1]);
+      const uniqueProps = new Set(propNames);
+      expect(uniqueProps.size).toBe(propNames.length);
+    }
+  });
+
   it("correctly determines generation strategy by endpoint count", async () => {
     const { ir } = await parseOpenAPI(PETSTORE_URL);
 
